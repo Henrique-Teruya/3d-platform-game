@@ -1,0 +1,128 @@
+{
+  "url": "http://127.0.0.1:5188",
+  "mode": "desktop",
+  "state": "wall-run",
+  "requestedState": "wall-run",
+  "appliedState": "wall-run",
+  "runId": "float-pass-2",
+  "seed": 42,
+  "screenshotPath": "artifacts/float-pass-2/desktop-wall-run.png",
+  "gpu": {
+    "renderer": "ANGLE (AMD, AMD Radeon RX 580 2048SP (0x00006FDF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (AMD)",
+    "softwareRendered": false
+  },
+  "result": {
+    "ok": true,
+    "reason": "nonblank",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 720
+    },
+    "drawingBuffer": {
+      "width": 1280,
+      "height": 720
+    },
+    "alphaPixels": 4096,
+    "variance": 244,
+    "colorBuckets": 93,
+    "metrics": {
+      "colorBuckets": 146,
+      "colorEntropyBits": 3.06,
+      "edgeDensity": 0.135,
+      "luminance": {
+        "mean": 26.9,
+        "p5": 0,
+        "p95": 107.7,
+        "contrast": 107.7
+      },
+      "dominantColorShare": 0.578,
+      "nonBackgroundShare": 0.422
+    },
+    "renderBudget": {
+      "tier": "desktop",
+      "note": "starting-point budget; adjust per game and document overrides",
+      "rows": [
+        {
+          "metric": "calls",
+          "actual": 65,
+          "limit": 300,
+          "ok": true
+        },
+        {
+          "metric": "triangles",
+          "actual": 4660,
+          "limit": 750000,
+          "ok": true
+        },
+        {
+          "metric": "geometries",
+          "actual": 57,
+          "limit": 300,
+          "ok": true
+        },
+        {
+          "metric": "textures",
+          "actual": 4,
+          "limit": 60,
+          "ok": true
+        }
+      ],
+      "withinBudget": true
+    },
+    "diagnostics": {
+      "frame": 8,
+      "elapsed": 0,
+      "score": 0,
+      "targetScore": 5,
+      "complete": false,
+      "levelId": "level-02",
+      "levelIndex": 2,
+      "checkpointIndex": 0,
+      "totalCheckpoints": 4,
+      "movementState": "WALL_RUNNING",
+      "isGrounded": false,
+      "player": {
+        "position": {
+          "x": 3.35,
+          "y": 2.2,
+          "z": -14
+        },
+        "velocity": {
+          "x": 0,
+          "y": -0.4,
+          "z": -11.5
+        },
+        "speed": 11.507,
+        "horizontalSpeed": 11.5,
+        "yaw": 0,
+        "pitch": 0
+      },
+      "physics": {
+        "engine": "Rapier3D (WASM KinematicController)",
+        "fixedDt": 0.016666666666666666,
+        "colliderCount": 18,
+        "movingPlatformCount": 0
+      },
+      "renderer": {
+        "calls": 65,
+        "triangles": 4660,
+        "geometries": 57,
+        "textures": 4
+      },
+      "canvas": {
+        "clientWidth": 1280,
+        "clientHeight": 720,
+        "width": 1280,
+        "height": 720,
+        "dpr": 1
+      }
+    }
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "consoleErrorCount": 0,
+  "pageErrorCount": 0
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "runId": "float-pass-2",
+  "captures": [
+    {
+      "mode": "desktop",
+      "state": "active-play",
+      "report": "artifacts/float-pass-2/desktop-active-play.json"
+    },
+    {
+      "mode": "mobile",
+      "state": "active-play",
+      "report": "artifacts/float-pass-2/mobile-active-play.json"
+    },
+    {
+      "mode": "desktop",
+      "state": "level-02",
+      "report": "artifacts/float-pass-2/desktop-level-02.json"
+    },
+    {
+      "mode": "desktop",
+      "state": "level-03",
+      "report": "artifacts/float-pass-2/desktop-level-03.json"
+    },
+    {
+      "mode": "desktop",
+      "state": "wall-run",
+      "report": "artifacts/float-pass-2/desktop-wall-run.json"
+    },
+    {
+      "mode": "desktop",
+      "state": "complete",
+      "report": "artifacts/float-pass-2/desktop-complete.json"
+    }
+  ]
+}
