@@ -13,6 +13,7 @@ export type GameEventMap = {
   };
   CHECKPOINT_ACTIVATED: { index: number; total: number; name: string };
   PLAYER_RESPAWNED: { checkpointIndex: number };
+  PLAYER_LAUNCHED: { impulseX: number; impulseY: number; impulseZ: number };
   LEVEL_STARTED: { levelId: string; levelName: string; subtitle: string };
   LEVEL_COMPLETED: { levelId: string; elapsedSeconds: number; isNewBest: boolean };
 };

@@ -224,6 +224,9 @@ export class SoundEngine {
         this.isSliding = false;
         this.playRespawnSweep();
       }),
+      this.events.on('PLAYER_LAUNCHED', () => {
+        this.playLaunchPadSound();
+      }),
     );
   }
 
@@ -288,6 +291,39 @@ export class SoundEngine {
     gain.connect(this.sfxGain);
     osc.start(now);
     osc.stop(now + 0.22);
+  }
+
+  private playLaunchPadSound(): void {
+    if (!this.ctx || !this.sfxGain) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(85, now);
+    osc.frequency.exponentialRampToValueAtTime(340, now + 0.18);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.35);
+
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.4);
+
+    const hiOsc = this.ctx.createOscillator();
+    const hiGain = this.ctx.createGain();
+    hiOsc.type = 'sine';
+    hiOsc.frequency.setValueAtTime(520, now);
+    hiOsc.frequency.exponentialRampToValueAtTime(1240, now + 0.22);
+    hiGain.gain.setValueAtTime(0.18, now);
+    hiGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+    hiOsc.connect(hiGain);
+    hiGain.connect(this.sfxGain);
+    hiOsc.start(now);
+    hiOsc.stop(now + 0.26);
   }
 
   private playCheckpointChime(): void {

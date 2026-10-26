@@ -1,0 +1,136 @@
+import type { LevelDefinition } from './LevelTypes';
+
+export const LEVEL_06_SLIDE_AQUEDUCT: LevelDefinition = {
+  id: 'level-06',
+  index: 6,
+  name: 'LEVEL 06 — THE SLIDE AQUEDUCT',
+  subtitle: 'Limestone Dawn · Downhill Velocity Chutes & Extreme Kinetic Slides',
+  biome: 'awakening',
+  parTimeSeconds: 36,
+  voidKillY: -42,
+  spawnPoint: [0, 8.0, 6],
+  spawnYawDeg: 0,
+  platforms: [
+    {
+      id: 'l6-p1-top-aqueduct',
+      topPosition: [0, 8.0, 0],
+      size: [10, 2.5, 20],
+      surfaceType: 'concrete',
+      hasGuideInlay: true,
+    },
+    {
+      id: 'l6-p2-runway',
+      topPosition: [0, 8.0, -18],
+      size: [8.5, 2.0, 14],
+      surfaceType: 'basalt',
+      hasGuideInlay: true,
+    },
+    {
+      id: 'l6-p3-chute-catch',
+      topPosition: [0, -3.8, -62],
+      size: [9.0, 2.5, 16],
+      surfaceType: 'concrete',
+      hasGuideInlay: true,
+    },
+    {
+      id: 'l6-p4-final-sanctuary',
+      topPosition: [0, 10.0, -112],
+      size: [14, 3.0, 22],
+      surfaceType: 'concrete',
+      hasGuideInlay: true,
+    },
+  ],
+  ramps: [
+    {
+      id: 'l6-ramp-mega-chute',
+      center: [0, 2.1, -40],
+      size: [8.0, 1.4, 28],
+      pitchDeg: 24,
+      isSlideChute: true,
+    },
+  ],
+  wallPanels: [
+    {
+      id: 'l6-wall-left',
+      center: [-4.6, 2.5, -40],
+      size: [0.8, 8.0, 30],
+    },
+    {
+      id: 'l6-wall-right',
+      center: [4.6, 2.5, -40],
+      size: [0.8, 8.0, 30],
+    },
+  ],
+  arches: [
+    {
+      id: 'l6-gate-1',
+      basePosition: [0, 5.0, -32],
+      openingWidth: 5.5,
+      openingHeight: 1.34,
+      pillarWidth: 1.4,
+      lintelHeight: 4.2,
+      depth: 2.2,
+    },
+    {
+      id: 'l6-gate-2',
+      basePosition: [0, 0.5, -46],
+      openingWidth: 5.5,
+      openingHeight: 1.34,
+      pillarWidth: 1.4,
+      lintelHeight: 4.2,
+      depth: 2.2,
+    },
+    {
+      id: 'l6-arch-sanctuary',
+      basePosition: [0, 10.0, -106],
+      openingWidth: 9.5,
+      openingHeight: 14.0,
+      pillarWidth: 2.2,
+      lintelHeight: 3.2,
+      depth: 2.8,
+    },
+  ],
+  movingPlatforms: [],
+  launchPads: [
+    {
+      id: 'l6-pad-boost',
+      position: [0, -3.75, -67],
+      size: [4.0, 0.45, 4.0],
+      impulse: [0, 24.5, -44.0],
+    },
+  ],
+  distantMonoliths: [
+    { position: [-44, 40, -35], size: [14, 180, 14], rotationYDeg: 10 },
+    { position: [48, 48, -48], size: [16, 200, 16], rotationYDeg: -12 },
+    { position: [-58, 25, -98], size: [20, 220, 20], rotationYDeg: 4 },
+    { position: [54, 30, -112], size: [18, 205, 18], rotationYDeg: -8 },
+    { position: [0, 75, -178], size: [30, 270, 24], rotationYDeg: 0 },
+  ],
+  checkpoints: [
+    {
+      id: 'l6-cp-0',
+      name: 'Aqueduct Incline',
+      position: [0, 8.0, -2],
+      spawnYawDeg: 0,
+      radius: 3.8,
+    },
+    {
+      id: 'l6-cp-1',
+      name: 'Chute Foot',
+      position: [0, -3.8, -58],
+      spawnYawDeg: 0,
+      radius: 3.8,
+    },
+    {
+      id: 'l6-cp-2',
+      name: 'Upper Cistern',
+      position: [0, 10.0, -104],
+      spawnYawDeg: 0,
+      radius: 3.8,
+    },
+  ],
+  finishPortal: {
+    position: [0, 10.0, -118],
+    radius: 3.5,
+  },
+};

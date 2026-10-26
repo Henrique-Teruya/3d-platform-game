@@ -69,6 +69,28 @@ export interface CheckpointSpec {
   radius?: number;
 }
 
+export interface LaunchPadSpec {
+  id: string;
+  /** Center X, top surface Y, center Z */
+  position: [number, number, number];
+  /** [width X, thickness Y, depth Z] */
+  size?: [number, number, number];
+  /** Velocity impulse vector [vx, vy, vz] imparted to the player */
+  impulse: [number, number, number];
+}
+
+export interface TutorialTriggerSpec {
+  id: string;
+  triggerZ: number;
+  triggerRadius?: number;
+  desktopTitle: string;
+  desktopHint: string;
+  desktopKey: string;
+  mobileTitle: string;
+  mobileHint: string;
+  actionType: 'sprint' | 'jump' | 'slide' | 'wallrun';
+}
+
 export interface FinishPortalSpec {
   position: [number, number, number];
   radius: number;
@@ -89,6 +111,8 @@ export interface LevelDefinition {
   wallPanels: WallRunPanelSpec[];
   arches: ArchGateSpec[];
   movingPlatforms: MovingPlatformSpec[];
+  launchPads?: LaunchPadSpec[];
+  tutorialTriggers?: TutorialTriggerSpec[];
   distantMonoliths: DistantMonolithSpec[];
   checkpoints: CheckpointSpec[];
   finishPortal: FinishPortalSpec;

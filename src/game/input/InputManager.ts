@@ -91,6 +91,8 @@ export class InputManager {
   public setTouchMove(x: number, y: number): void {
     this.touchMoveX = Math.max(-1, Math.min(1, x));
     this.touchMoveY = Math.max(-1, Math.min(1, y));
+    const magSq = this.touchMoveX * this.touchMoveX + this.touchMoveY * this.touchMoveY;
+    this.touchSprint = magSq > 0.03;
   }
 
   public setTouchSprint(active: boolean): void {

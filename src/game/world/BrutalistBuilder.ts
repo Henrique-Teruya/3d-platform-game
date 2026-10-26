@@ -11,6 +11,15 @@ export interface CheckpointVisual {
   activated: boolean;
 }
 
+export interface LaunchPadVisual {
+  id: string;
+  position: THREE.Vector3;
+  size: [number, number, number];
+  impulse: [number, number, number];
+  pulseMesh: THREE.Mesh;
+  ringMesh: THREE.Mesh;
+}
+
 export interface FinishPortalVisual {
   group: THREE.Group;
   outerRing: THREE.Mesh;
@@ -108,6 +117,7 @@ export class FirstPersonParkourRig {
 export class BrutalistBuilder {
   public readonly levelGroup = new THREE.Group();
   public readonly checkpointVisuals: CheckpointVisual[] = [];
+  public readonly launchPadVisuals: LaunchPadVisual[] = [];
   public finishPortalVisual: FinishPortalVisual | null = null;
   private readonly geometriesToDispose: THREE.BufferGeometry[] = [];
 
@@ -414,7 +424,66 @@ export class BrutalistBuilder {
       this.levelGroup.add(instancedMonoliths);
     }
 
-    // 7. Build Checkpoint Shrines
+    // 7. Build Launch Pads
+    if (level.launchPads) {
+      for (const lp of level.launchPads) {
+        const [px, py, pz] = lp.position;
+        const [sx, sy, sz] = lp.size ?? [3.6, 0.45, 3.6];
+
+        this.physics.addStaticBox(
+          `launchpad-${lp.id}`,
+          { x: px, y: py - sy * 0.5, z: pz },
+          { x: sx, y: sy, z: sz },
+          { x: 0, y: 0, z: 0 },
+          { surfaceType: 'metal', isWallRunnable: false },
+        );
+
+        const padGroup = new THREE.Group();
+        padGroup.position.set(px, py, pz);
+
+        const baseGeo = new THREE.BoxGeometry(sx, sy, sz);
+        this.geometriesToDispose.push(baseGeo);
+        const baseMesh = new THREE.Mesh(baseGeo, this.materials.launchPadBase);
+        baseMesh.position.y = -sy * 0.5;
+        baseMesh.castShadow = true;
+        baseMesh.receiveShadow = true;
+        padGroup.add(baseMesh);
+
+        const ringGeo = new THREE.RingGeometry(sx * 0.28, sx * 0.44, 24);
+        ringGeo.rotateX(-Math.PI * 0.5);
+        this.geometriesToDispose.push(ringGeo);
+        const ringMesh = new THREE.Mesh(ringGeo, this.materials.launchPadActive);
+        ringMesh.position.y = 0.02;
+        padGroup.add(ringMesh);
+
+        const coreGeo = new THREE.CylinderGeometry(sx * 0.22, sx * 0.24, 0.12, 16);
+        this.geometriesToDispose.push(coreGeo);
+        const coreMesh = new THREE.Mesh(coreGeo, this.materials.launchPadActive);
+        coreMesh.position.y = 0.05;
+        padGroup.add(coreMesh);
+
+        const arrowGeo = new THREE.ConeGeometry(0.35, 0.9, 3);
+        arrowGeo.rotateX(Math.PI * 0.5);
+        if (lp.impulse[2] > 0) arrowGeo.rotateY(Math.PI);
+        this.geometriesToDispose.push(arrowGeo);
+        const arrowMesh = new THREE.Mesh(arrowGeo, this.materials.trimDark);
+        arrowMesh.position.set(0, 0.12, 0);
+        padGroup.add(arrowMesh);
+
+        this.levelGroup.add(padGroup);
+
+        this.launchPadVisuals.push({
+          id: lp.id,
+          position: new THREE.Vector3(px, py, pz),
+          size: [sx, sy, sz],
+          impulse: lp.impulse,
+          pulseMesh: coreMesh,
+          ringMesh,
+        });
+      }
+    }
+
+    // 8. Build Checkpoint Shrines
     for (const cp of level.checkpoints) {
       const [cx, cy, cz] = cp.position;
       const shrineGroup = new THREE.Group();
@@ -515,6 +584,13 @@ export class BrutalistBuilder {
       cp.ringMesh.rotation.y = elapsed * 0.8;
     }
 
+    for (let i = 0; i < this.launchPadVisuals.length; i++) {
+      const lp = this.launchPadVisuals[i];
+      const pulse = 1.0 + Math.sin(elapsed * 4.0 + i * 1.5) * 0.12;
+      lp.pulseMesh.scale.set(pulse, 1.0, pulse);
+      lp.ringMesh.rotation.z = elapsed * 0.8 + i;
+    }
+
     if (this.finishPortalVisual) {
       this.finishPortalVisual.outerRing.rotation.z = elapsed * 0.6;
       this.finishPortalVisual.innerRing.rotation.y = elapsed * 1.1;
@@ -534,6 +610,7 @@ export class BrutalistBuilder {
     }
     this.geometriesToDispose.length = 0;
     this.checkpointVisuals.length = 0;
+    this.launchPadVisuals.length = 0;
     this.finishPortalVisual = null;
     this.physics.clearLevelColliders();
   }

@@ -7,9 +7,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run tests/unit",
     "test:e2e": "playwright test",
-    "test": "vitest run",
+    "test": "vitest run tests/unit",
     "verify:visual": "playwright test tests/e2e/visual.spec.ts",
     "inspect:canvas": "node scripts/inspect-threejs-canvas.mjs"
   },

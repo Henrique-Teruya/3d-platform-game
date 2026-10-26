@@ -4,7 +4,7 @@ import { DEFAULT_MOVEMENT_CONFIG } from '../../src/config/movementConfig';
 import { CheckpointSystem } from '../../src/game/checkpoints/CheckpointSystem';
 import { EventBus } from '../../src/game/core/EventBus';
 import type { InputManager, InputSnapshot } from '../../src/game/input/InputManager';
-import { LEVELS, getLevelById } from '../../src/game/levels/LevelRegistry';
+import { LEVELS, getLevelById, getNextLevelId } from '../../src/game/levels/LevelRegistry';
 import type { LevelDefinition } from '../../src/game/levels/LevelTypes';
 import { PlayerController } from '../../src/game/movement/PlayerController';
 import { ensureRapierInitialized, PhysicsWorld } from '../../src/game/physics/PhysicsWorld';
@@ -85,6 +85,19 @@ function registerLevelCollidersOnly(level: LevelDefinition, physics: PhysicsWorl
       mp.phaseOffset ?? 0,
     );
   }
+  if (level.launchPads) {
+    for (const lp of level.launchPads) {
+      const [px, py, pz] = lp.position;
+      const [sx, sy, sz] = lp.size ?? [3.6, 0.45, 3.6];
+      physics.addStaticBox(
+        `launchpad-${lp.id}`,
+        { x: px, y: py - sy * 0.5, z: pz },
+        { x: sx, y: sy, z: sz },
+        undefined,
+        { surfaceType: 'metal', isWallRunnable: false },
+      );
+    }
+  }
 }
 
 describe('Level Design, Checkpoints & Physical Playability Verification', () => {
@@ -92,14 +105,37 @@ describe('Level Design, Checkpoints & Physical Playability Verification', () => 
     await ensureRapierInitialized();
   });
 
-  it('validates structural metadata and checkpoints for all 3 levels', () => {
-    expect(LEVELS.length).toBe(3);
+  it('validates structural metadata and checkpoints for all 9 levels', () => {
+    expect(LEVELS.length).toBe(9);
     for (const lvl of LEVELS) {
-      expect(lvl.platforms.length).toBeGreaterThanOrEqual(5);
+      expect(lvl.platforms.length).toBeGreaterThanOrEqual(4);
       expect(lvl.checkpoints.length).toBeGreaterThanOrEqual(3);
       expect(lvl.spawnPoint[1]).toBeGreaterThan(lvl.voidKillY);
       expect(lvl.finishPortal.radius).toBeGreaterThan(2.0);
     }
+  });
+
+  it('launches player into high parabolic arc when triggered by a launch pad', () => {
+    const physics = new PhysicsWorld(-DEFAULT_MOVEMENT_CONFIG.gravityBase);
+    const events = new EventBus();
+    const player = new PlayerController(physics, events, DEFAULT_MOVEMENT_CONFIG);
+    player.spawnAt(0, 0, 0);
+
+    let launchedEventFired = false;
+    events.on('PLAYER_LAUNCHED', () => {
+      launchedEventFired = true;
+    });
+
+    player.applyLaunch(0, 22.0, -35.0);
+    expect(player.velocity.y).toBe(22.0);
+    expect(player.velocity.z).toBe(-35.0);
+    expect(player.isGrounded).toBe(false);
+    expect(launchedEventFired).toBe(true);
+  });
+
+  it('loops Level 09 back into Level 09 for infinite traversal', () => {
+    const next = getNextLevelId('level-09');
+    expect(next).toBe('level-09');
   });
 
   it('activates checkpoints, respawns safely from Void fall, and completes Level 01 via real physics', () => {

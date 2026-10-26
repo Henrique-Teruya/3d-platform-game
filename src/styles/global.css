@@ -275,6 +275,93 @@ body,
   color: var(--accent-cyan);
 }
 
+/* TUTORIAL PROMPT CARD */
+.hud-tutorial-card {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 16, 20, 0.92);
+  border: 1px solid var(--border-stone);
+  border-top: 2px solid var(--accent-amber);
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+  animation: tutorialPop 240ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  pointer-events: none;
+  z-index: 12;
+  max-width: min(92vw, 480px);
+  text-align: center;
+}
+
+@keyframes tutorialPop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.tutorial-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tutorial-badge-icon {
+  color: var(--accent-amber);
+  font-size: 11px;
+}
+
+.tutorial-badge-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--text-primary);
+}
+
+.tutorial-kbd {
+  background: var(--accent-amber);
+  color: #121418;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+}
+
+.tutorial-card-hint {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.hud-loop-tag {
+  background: var(--accent-cyan);
+  color: #121418;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 2px;
+}
+
 /* BOTTOM HUD CLUSTERS */
 .hud-bottom-left {
   position: absolute;

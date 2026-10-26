@@ -88,6 +88,8 @@ export class MaterialLibrary {
   public readonly checkpointInactive: THREE.MeshStandardMaterial;
   public readonly checkpointActive: THREE.MeshStandardMaterial;
   public readonly portalEmissive: THREE.MeshStandardMaterial;
+  public readonly launchPadBase: THREE.MeshStandardMaterial;
+  public readonly launchPadActive: THREE.MeshStandardMaterial;
   public readonly gauntletArmor: THREE.MeshStandardMaterial;
   public readonly gauntletTrim: THREE.MeshStandardMaterial;
 
@@ -185,6 +187,20 @@ export class MaterialLibrary {
       metalness: 0.1,
     });
 
+    this.launchPadBase = new THREE.MeshStandardMaterial({
+      color: '#15171C',
+      roughness: 0.7,
+      metalness: 0.3,
+    });
+
+    this.launchPadActive = new THREE.MeshStandardMaterial({
+      color: '#FFB703',
+      emissive: palette.accentColor,
+      emissiveIntensity: 1.8,
+      roughness: 0.2,
+      metalness: 0.1,
+    });
+
     this.gauntletArmor = new THREE.MeshStandardMaterial({
       color: '#2B2D34',
       roughness: 0.4,
@@ -211,6 +227,8 @@ export class MaterialLibrary {
       this.checkpointInactive,
       this.checkpointActive,
       this.portalEmissive,
+      this.launchPadBase,
+      this.launchPadActive,
       this.gauntletArmor,
       this.gauntletTrim,
     );
@@ -226,6 +244,7 @@ export class MaterialLibrary {
     this.guideInlay.color.set(palette.accentColor);
     this.guideInlay.emissive.set(palette.accentColor);
     this.portalEmissive.emissive.set(palette.accentColor);
+    this.launchPadActive.emissive.set(palette.accentColor);
     this.gauntletTrim.color.set(palette.accentColor);
     this.gauntletTrim.emissive.set(palette.accentColor);
   }

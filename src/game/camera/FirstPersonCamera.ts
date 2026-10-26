@@ -32,6 +32,11 @@ export class FirstPersonCamera {
     this.trauma = Math.min(0.45, this.trauma + normalized * 0.25 * shakeScale);
   }
 
+  public onLaunchPadImpulse(): void {
+    this.landingDipVelocity = -1.4;
+    this.trauma = Math.min(0.5, this.trauma + 0.3);
+  }
+
   public update(
     renderDelta: number,
     alpha: number,

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GRAPHICS_PRESETS } from '../config/graphicsConfig';
 import { createMovementConfig, type MovementConfig } from '../config/movementConfig';
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore, type TutorialPromptData } from '../stores/gameStore';
 import { SoundEngine } from './audio/SoundEngine';
 import { FirstPersonCamera } from './camera/FirstPersonCamera';
 import { CheckpointSystem } from './checkpoints/CheckpointSystem';
@@ -133,6 +133,7 @@ export class GameEngine {
 
     const store = useGameStore.getState();
     store.setCurrentLevelId(level.id);
+    store.setTutorialPrompt(null);
     if (startImmediately) {
       store.setScreen('playing');
       store.setActiveModal('none');
@@ -240,12 +241,33 @@ export class GameEngine {
 
     this.events.on('LEVEL_COMPLETED', ({ levelId, elapsedSeconds }) => {
       this.isLevelComplete = true;
-      this.input.exitPointerLock();
-      this.input.clearAllInputs();
       const nextId = getNextLevelId(levelId);
-      useGameStore
-        .getState()
-        .recordLevelCompletion(levelId, this.currentLevel.name, elapsedSeconds, nextId);
+      const isLoop = levelId === 'level-09';
+
+      if (isLoop) {
+        const loopCount = useGameStore.getState().incrementInfiniteLoop();
+        useGameStore.getState().recordLevelCompletion(levelId, this.currentLevel.name, elapsedSeconds, 'level-09');
+        useGameStore.getState().showBanner('COLOSSUS CONQUERED', `STARTING LOOP ${loopCount} · RUN FOREVER`);
+        this.respawnFadeTimer = 0.45;
+        window.setTimeout(() => {
+          if (!this.disposed) {
+            this.loadLevel('level-09', true);
+          }
+        }, 320);
+      } else if (nextId) {
+        useGameStore.getState().recordLevelCompletion(levelId, this.currentLevel.name, elapsedSeconds, nextId);
+        useGameStore.getState().showBanner('SECTOR CLEARED', 'ADVANCING TO NEXT SECTOR...');
+        this.respawnFadeTimer = 0.45;
+        window.setTimeout(() => {
+          if (!this.disposed) {
+            this.loadLevel(nextId, true);
+          }
+        }, 320);
+      } else {
+        this.input.exitPointerLock();
+        this.input.clearAllInputs();
+        useGameStore.getState().recordLevelCompletion(levelId, this.currentLevel.name, elapsedSeconds, null);
+      }
     });
   }
 
@@ -316,6 +338,25 @@ export class GameEngine {
 
         const snap = this.input.sampleFixedStep(fixedDt, this.movementConfig.jumpBufferTime);
         this.player.fixedUpdate(fixedDt, snap, this.input);
+
+        // Check Launch Pads interaction
+        if (this.builder.launchPadVisuals.length > 0) {
+          const pPos = this.player.position;
+          for (let i = 0; i < this.builder.launchPadVisuals.length; i++) {
+            const lp = this.builder.launchPadVisuals[i];
+            const dx = Math.abs(pPos.x - lp.position.x);
+            const dy = pPos.y - lp.position.y;
+            const dz = Math.abs(pPos.z - lp.position.z);
+            const halfW = lp.size[0] * 0.5 + 0.35;
+            const halfD = lp.size[2] * 0.5 + 0.35;
+            if (dx <= halfW && dz <= halfD && dy >= -0.25 && dy <= 1.45) {
+              this.player.applyLaunch(lp.impulse[0], lp.impulse[1], lp.impulse[2]);
+              this.fpCamera.onLaunchPadImpulse();
+              break;
+            }
+          }
+        }
+
         this.checkpoints.update(this.currentLevel, this.player, this.levelElapsedSeconds);
       });
 
@@ -369,6 +410,32 @@ export class GameEngine {
         totalCheckpoints: this.currentLevel.checkpoints.length,
         fps: Math.round(1 / Math.max(0.004, delta)),
       });
+
+      // Monitor tutorial prompts if current level has them
+      if (this.currentLevel.tutorialTriggers && this.currentLevel.tutorialTriggers.length > 0) {
+        const pz = this.player.position.z;
+        let matchedPrompt: TutorialPromptData | null = null;
+        for (const trig of this.currentLevel.tutorialTriggers) {
+          const rad = trig.triggerRadius ?? 6.0;
+          if (Math.abs(pz - trig.triggerZ) <= rad) {
+            matchedPrompt = {
+              id: trig.id,
+              desktopTitle: trig.desktopTitle,
+              desktopHint: trig.desktopHint,
+              desktopKey: trig.desktopKey,
+              mobileTitle: trig.mobileTitle,
+              mobileHint: trig.mobileHint,
+              actionType: trig.actionType,
+            };
+            break;
+          }
+        }
+        if (store.tutorialPrompt?.id !== matchedPrompt?.id) {
+          store.setTutorialPrompt(matchedPrompt);
+        }
+      } else if (store.tutorialPrompt !== null) {
+        store.setTutorialPrompt(null);
+      }
     }
 
     this.publishDiagnostics();

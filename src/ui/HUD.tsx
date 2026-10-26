@@ -22,6 +22,8 @@ export const HUD: React.FC<HUDProps> = ({ engine }) => {
   const telemetry = useGameStore((s) => s.telemetry);
   const bannerMessage = useGameStore((s) => s.bannerMessage);
   const checkpointToast = useGameStore((s) => s.checkpointToast);
+  const tutorialPrompt = useGameStore((s) => s.tutorialPrompt);
+  const infiniteLoopCount = useGameStore((s) => s.infiniteLoopCount);
 
   const [bannerVisible, setBannerVisible] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
@@ -117,6 +119,9 @@ export const HUD: React.FC<HUDProps> = ({ engine }) => {
             <span className="hud-index">0{level.index}</span>
             <span className="hud-divider">/</span>
             <span className="hud-level-title">{level.name.replace(/^LEVEL \d+ — /, '')}</span>
+            {currentLevelId === 'level-09' && infiniteLoopCount > 1 && (
+              <span className="hud-loop-tag">LOOP {infiniteLoopCount}</span>
+            )}
           </div>
 
           <div className="hud-metrics-row">
@@ -196,6 +201,19 @@ export const HUD: React.FC<HUDProps> = ({ engine }) => {
         <div className={`hud-cp-toast ${toastVisible ? 'visible' : ''}`}>
           <span className="cp-diamond">◆</span>
           <span>{checkpointToast.label}</span>
+        </div>
+      )}
+
+      {/* Real-time Dynamic Tutorial Prompt Card */}
+      {isPlaying && tutorialPrompt && (
+        <div className="hud-tutorial-card">
+          <div className="tutorial-card-header">
+            <span className="tutorial-badge-icon">◆</span>
+            <span className="tutorial-badge-title">{tutorialPrompt.desktopTitle}</span>
+            <kbd className="tutorial-kbd">{tutorialPrompt.desktopKey}</kbd>
+          </div>
+          <div className="tutorial-card-hint desktop-only">{tutorialPrompt.desktopHint}</div>
+          <div className="tutorial-card-hint mobile-only">{tutorialPrompt.mobileHint}</div>
         </div>
       )}
 

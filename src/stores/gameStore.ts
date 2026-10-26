@@ -45,6 +45,16 @@ export interface TelemetryData {
   fps: number;
 }
 
+export interface TutorialPromptData {
+  id: string;
+  desktopTitle: string;
+  desktopHint: string;
+  desktopKey: string;
+  mobileTitle: string;
+  mobileHint: string;
+  actionType: 'sprint' | 'jump' | 'slide' | 'wallrun';
+}
+
 export interface GameStoreState {
   screen: ScreenState;
   activeModal: 'none' | 'level_select' | 'settings' | 'credits';
@@ -53,6 +63,8 @@ export interface GameStoreState {
   respawnFadeOpacity: number;
   bannerMessage: { title: string; subtitle?: string; id: number } | null;
   checkpointToast: { label: string; id: number } | null;
+  tutorialPrompt: TutorialPromptData | null;
+  infiniteLoopCount: number;
   lastCompletion: {
     levelId: string;
     levelName: string;
@@ -74,6 +86,8 @@ export interface GameStoreState {
   setRespawnFadeOpacity: (opacity: number) => void;
   showBanner: (title: string, subtitle?: string) => void;
   showCheckpointToast: (label: string) => void;
+  setTutorialPrompt: (prompt: TutorialPromptData | null) => void;
+  incrementInfiniteLoop: () => number;
   updateSettings: (partial: Partial<UserSettings>) => void;
   resetSettings: () => void;
   recordLevelCompletion: (
@@ -109,7 +123,17 @@ export const DEFAULT_SETTINGS: UserSettings = {
 };
 
 const DEFAULT_PROGRESS: LevelProgress = {
-  unlockedLevels: ['level-01', 'level-02', 'level-03'],
+  unlockedLevels: [
+    'level-01',
+    'level-02',
+    'level-03',
+    'level-04',
+    'level-05',
+    'level-06',
+    'level-07',
+    'level-08',
+    'level-09',
+  ],
   completedLevels: [],
   bestTimes: {},
   lastPlayedLevel: 'level-01',
@@ -170,6 +194,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   respawnFadeOpacity: 0,
   bannerMessage: null,
   checkpointToast: null,
+  tutorialPrompt: null,
+  infiniteLoopCount: 1,
   lastCompletion: null,
 
   settings: loadStoredSettings(),
@@ -204,6 +230,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   showCheckpointToast: (label) => {
     toastCounter += 1;
     set({ checkpointToast: { label, id: toastCounter } });
+  },
+
+  setTutorialPrompt: (tutorialPrompt) => set({ tutorialPrompt }),
+  incrementInfiniteLoop: () => {
+    const next = get().infiniteLoopCount + 1;
+    set({ infiniteLoopCount: next });
+    return next;
   },
 
   updateSettings: (partial) => {

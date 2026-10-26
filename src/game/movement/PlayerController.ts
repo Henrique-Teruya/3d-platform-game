@@ -108,6 +108,21 @@ export class PlayerController {
     if (this.pitch < -maxPitch) this.pitch = -maxPitch;
   }
 
+  public applyLaunch(impulseX: number, impulseY: number, impulseZ: number): void {
+    if (this.isSliding && this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
+      this.exitSlide();
+    }
+    if (this.wallRunSide !== 'none') {
+      this.endWallRun();
+    }
+    this.velocity.set(impulseX, impulseY, impulseZ);
+    this.isGrounded = false;
+    this.coyoteTimer = 0;
+    this.activeMovingPlatformId = undefined;
+    this.state = 'JUMPING';
+    this.events.emit('PLAYER_LAUNCHED', { impulseX, impulseY, impulseZ });
+  }
+
   public fixedUpdate(fixedDt: number, input: InputSnapshot, inputManager: InputManager): void {
     this.prevPosition.copy(this.position);
     this.prevEyeHeight = this.currentEyeHeight;

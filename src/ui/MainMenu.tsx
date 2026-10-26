@@ -1,6 +1,6 @@
 import React from 'react';
 import type { GameEngine } from '../game/GameEngine';
-import { getLevelById } from '../game/levels/LevelRegistry';
+import { getLevelById, LEVELS } from '../game/levels/LevelRegistry';
 import { useGameStore } from '../stores/gameStore';
 
 interface MainMenuProps {
@@ -45,7 +45,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ engine }) => {
             onClick={() => setActiveModal('level_select')}
           >
             <span>SELECT SECTOR</span>
-            <span className="btn-meta">03 LEVELS</span>
+            <span className="btn-meta">{LEVELS.length.toString().padStart(2, '0')} SECTORS</span>
           </button>
 
           <button
