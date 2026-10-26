@@ -2,6 +2,8 @@
 
 A 3D first-person momentum parkour browser game built on **Three.js** and **Rapier3D (WASM)**, focused on fluid architectural traversal, contemplative brutalist monoliths, and minimalist aesthetic design.
 
+[English](README.md) | [Português (Brasil)](README.pt-BR.md)
+
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-floatparkour.vercel.app-e08e45?style=for-the-badge&logo=vercel)](https://floatparkour.vercel.app)
 [![Three.js](https://img.shields.io/badge/Three.js-r172-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 [![Physics](https://img.shields.io/badge/Physics-Rapier3D%20WASM-blue?style=for-the-badge)](https://rapier.rs/)
