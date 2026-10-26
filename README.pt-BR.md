@@ -124,3 +124,10 @@ Acesse:
 ## 📄 Licença
 
 Este projeto é de código aberto sob a licença [MIT](LICENSE).
+
+---
+
+## ⚡ Guia de Otimização e Fluidez
+
+Para entender as 10 regras de ouro que mantêm o jogo rodando a 60 FPS lisos sem travamentos em qualquer celular ou PC modesto (zero Garbage Collection, texturas procedurais, áudio sintetizado e limite de DPR), consulte o manual obrigatório:
+👉 **[`docs/PERFORMANCE_AND_OPTIMIZATION_GUIDE.md`](docs/PERFORMANCE_AND_OPTIMIZATION_GUIDE.md)**

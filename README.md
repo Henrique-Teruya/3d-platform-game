@@ -177,6 +177,7 @@ The repository includes a comprehensive 8-module architectural and game design b
 | **06. UX & Accessibility** | [`docs/06-ux-and-ui/`](docs/06-ux-and-ui/) | Architectural HUD, mobile controls, and motion sickness comfort settings. |
 | **07. Software Architecture** | [`docs/07-technical-architecture/`](docs/07-technical-architecture/) | Decoupled 60Hz loop, state machines, and GC optimization. |
 | **08. QA & Verification** | [`docs/08-ai-implementation-roadmap/`](docs/08-ai-implementation-roadmap/) | Verification reports, test metrics, and [`IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md). |
+| **⚡ Performance Guide** | [`docs/PERFORMANCE_AND_OPTIMIZATION_GUIDE.md`](docs/PERFORMANCE_AND_OPTIMIZATION_GUIDE.md) | The 10 Golden Rules to keep the game lightweight, fluid, and running at 60 FPS on any device. |
 
 ---
 
