@@ -58,6 +58,7 @@ export class PlayerController {
   private wallJumpCooldownTimer = 0;
   private slideBoostCooldownTimer = 0;
   private launchTimer = 0;
+  private jumpRiseTimer = 0;
   private footstepTimer = 0;
   private activeMovingPlatformId: string | undefined;
 
@@ -90,6 +91,7 @@ export class PlayerController {
     this.wallJumpCooldownTimer = 0;
     this.slideBoostCooldownTimer = 0;
     this.launchTimer = 0;
+    this.jumpRiseTimer = 0;
     this.hasLastWall = false;
     this.activeMovingPlatformId = undefined;
     this.currentEyeHeight = this.config.cameraEyeHeightStand;
@@ -209,7 +211,7 @@ export class PlayerController {
 
     // 5. Handle Jump / Coyote Jump / Jump Buffer / Wall Jump
     const canGroundJump = this.isGrounded || this.coyoteTimer > 0;
-    const wantsJump = input.jumpBuffered || (input.isJumpHeld && this.isGrounded);
+    const wantsJump = input.jumpBuffered || (input.isJumpHeld && canGroundJump);
     if (wantsJump) {
       if (this.wallRunSide !== 'none') {
         // Execute Wall Jump
@@ -249,6 +251,7 @@ export class PlayerController {
           }
         }
         this.velocity.y = this.config.jumpVelocity;
+        this.jumpRiseTimer = 0.18;
         this.isGrounded = false;
         this.coyoteTimer = 0;
         this.activeMovingPlatformId = undefined;
@@ -345,7 +348,10 @@ export class PlayerController {
           this.velocity.y - 42.0 * fixedDt,
         );
       } else {
-        const isJumpEffective = input.isJumpHeld || this.launchTimer > 0;
+        if (this.jumpRiseTimer > 0) {
+          this.jumpRiseTimer = Math.max(0, this.jumpRiseTimer - fixedDt);
+        }
+        const isJumpEffective = input.isJumpHeld || this.launchTimer > 0 || this.jumpRiseTimer > 0;
         const gEff = computeEffectiveGravity(this.velocity.y, isJumpEffective, false, this.config);
         this.velocity.y = Math.max(
           this.config.terminalFallSpeed,

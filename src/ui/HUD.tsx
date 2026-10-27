@@ -224,10 +224,10 @@ export const HUD: React.FC<HUDProps> = ({ engine }) => {
             <kbd>WASD</kbd> MOVE
           </div>
           <div className="hud-hint-item">
-            <kbd>SHIFT</kbd> SPRINT
+            <kbd>SHIFT</kbd> SPRINT (HOLD / TOGGLE)
           </div>
           <div className="hud-hint-item">
-            <kbd>SPACE</kbd> JUMP / WALL JUMP
+            <kbd>SPACE / RMB / WHEEL</kbd> JUMP
           </div>
           <div className="hud-hint-item">
             <kbd>CTRL / C</kbd> SLIDE / STOMP

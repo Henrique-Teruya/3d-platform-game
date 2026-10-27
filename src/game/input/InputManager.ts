@@ -21,6 +21,7 @@ export class InputManager {
   private lookDeltaX = 0;
   private lookDeltaY = 0;
   private pointerLocked = false;
+  private sprintToggled = false;
 
   // Touch inputs for mobile support
   private touchMoveX = 0;
@@ -34,6 +35,10 @@ export class InputManager {
   private readonly onKeyDownBound: (e: KeyboardEvent) => void;
   private readonly onKeyUpBound: (e: KeyboardEvent) => void;
   private readonly onMouseMoveBound: (e: MouseEvent) => void;
+  private readonly onMouseDownBound: (e: MouseEvent) => void;
+  private readonly onMouseUpBound: (e: MouseEvent) => void;
+  private readonly onWheelBound: (e: WheelEvent) => void;
+  private readonly onContextMenuBound: (e: MouseEvent) => void;
   private readonly onBlurBound: () => void;
 
   public onPointerLockStatusChange?: (locked: boolean) => void;
@@ -46,6 +51,10 @@ export class InputManager {
     this.onKeyDownBound = (e) => this.handleKeyDown(e);
     this.onKeyUpBound = (e) => this.handleKeyUp(e);
     this.onMouseMoveBound = (e) => this.handleMouseMove(e);
+    this.onMouseDownBound = (e) => this.handleMouseDown(e);
+    this.onMouseUpBound = (e) => this.handleMouseUp(e);
+    this.onWheelBound = (e) => this.handleWheel(e);
+    this.onContextMenuBound = (e) => this.handleContextMenu(e);
     this.onBlurBound = () => {
       if (document.hidden) {
         this.clearAllInputs();
@@ -55,6 +64,10 @@ export class InputManager {
     window.addEventListener('keydown', this.onKeyDownBound);
     window.addEventListener('keyup', this.onKeyUpBound);
     window.addEventListener('mousemove', this.onMouseMoveBound);
+    window.addEventListener('mousedown', this.onMouseDownBound);
+    window.addEventListener('mouseup', this.onMouseUpBound);
+    window.addEventListener('wheel', this.onWheelBound, { passive: false });
+    window.addEventListener('contextmenu', this.onContextMenuBound);
     window.addEventListener('blur', this.onBlurBound);
     document.addEventListener('pointerlockchange', this.onPointerLockChangeBound);
   }
@@ -152,6 +165,7 @@ export class InputManager {
     const isSprinting =
       this.keysDown.has('ShiftLeft') ||
       this.keysDown.has('ShiftRight') ||
+      this.sprintToggled ||
       this.touchSprint;
 
     const isWalkingSlow =
@@ -195,6 +209,7 @@ export class InputManager {
     this.touchMoveY = 0;
     this.touchSprint = false;
     this.touchSlide = false;
+    this.sprintToggled = false;
     this.lookDeltaX = 0;
     this.lookDeltaY = 0;
   }
@@ -203,6 +218,10 @@ export class InputManager {
     window.removeEventListener('keydown', this.onKeyDownBound);
     window.removeEventListener('keyup', this.onKeyUpBound);
     window.removeEventListener('mousemove', this.onMouseMoveBound);
+    window.removeEventListener('mousedown', this.onMouseDownBound);
+    window.removeEventListener('mouseup', this.onMouseUpBound);
+    window.removeEventListener('wheel', this.onWheelBound);
+    window.removeEventListener('contextmenu', this.onContextMenuBound);
     window.removeEventListener('blur', this.onBlurBound);
     document.removeEventListener('pointerlockchange', this.onPointerLockChangeBound);
   }
@@ -210,6 +229,18 @@ export class InputManager {
   private handlePointerLockChange(): void {
     this.pointerLocked = document.pointerLockElement === this.targetElement;
     this.onPointerLockStatusChange?.(this.pointerLocked);
+  }
+
+  private isJumpKey(e: KeyboardEvent): boolean {
+    return (
+      e.code === 'Space' ||
+      e.key === ' ' ||
+      e.code === 'Spacebar' ||
+      e.code === 'KeyF' ||
+      e.code === 'KeyE' ||
+      e.code === 'KeyJ' ||
+      e.code === 'Numpad0'
+    );
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
@@ -226,9 +257,15 @@ export class InputManager {
       this.onQuickRestart?.();
     }
 
-    if (e.code === 'Space' || e.key === ' ' || e.code === 'Spacebar') {
+    if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      if (!e.repeat) {
+        this.sprintToggled = !this.sprintToggled;
+      }
+    }
+
+    if (this.isJumpKey(e)) {
       e.preventDefault();
-      this.jumpBufferTimer = 0.16;
+      this.jumpBufferTimer = 0.20;
       this.jumpHeld = true;
       this.keysDown.add('Space');
     }
@@ -237,11 +274,39 @@ export class InputManager {
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
-    if (e.code === 'Space' || e.key === ' ' || e.code === 'Spacebar') {
+    if (this.isJumpKey(e)) {
       this.jumpHeld = false;
       this.keysDown.delete('Space');
     }
     this.keysDown.delete(e.code);
+  }
+
+  private handleMouseDown(e: MouseEvent): void {
+    if (e.button === 2) {
+      e.preventDefault();
+      this.jumpBufferTimer = 0.20;
+      this.jumpHeld = true;
+      this.keysDown.add('Space');
+    }
+  }
+
+  private handleMouseUp(e: MouseEvent): void {
+    if (e.button === 2) {
+      this.jumpHeld = false;
+      this.keysDown.delete('Space');
+    }
+  }
+
+  private handleWheel(e: WheelEvent): void {
+    if (Math.abs(e.deltaY) > 2) {
+      this.bufferJump(0.22);
+    }
+  }
+
+  private handleContextMenu(e: MouseEvent): void {
+    if (this.pointerLocked || e.target === this.targetElement) {
+      e.preventDefault();
+    }
   }
 
   private handleMouseMove(e: MouseEvent): void {

@@ -93,8 +93,8 @@ export const DEFAULT_MOVEMENT_CONFIG: MovementConfig = {
   gravityFallMult: 1.38,
   gravityCutMult: 2.15,
   terminalFallSpeed: -45.0,
-  coyoteTime: 0.16,
-  jumpBufferTime: 0.14,
+  coyoteTime: 0.20,
+  jumpBufferTime: 0.18,
 
   maxWalkableSlopeDeg: 46.0,
   groundSnapDistance: 0.45,
