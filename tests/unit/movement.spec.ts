@@ -314,6 +314,19 @@ describe('PlayerController & Rapier3D Integration', () => {
     expect(controller.velocity.y).toBeGreaterThan(8.0);
     expect(jumpedEvents).toBe(1);
 
+    // Follow jump arc for 30 frames where user immediately released Space
+    let peakY = controller.position.y;
+    for (let f = 0; f < 30; f++) {
+      physics.step(1 / 60);
+      controller.fixedUpdate(
+        1 / 60,
+        makeInput({ moveForward: 1, isSprinting: true, isJumpHeld: false }),
+        dummyInputManager,
+      );
+      if (controller.position.y > peakY) peakY = controller.position.y;
+    }
+    expect(peakY).toBeGreaterThan(1.2);
+
     physics.dispose();
   });
 

@@ -22,6 +22,7 @@ export class InputManager {
   private lookDeltaY = 0;
   private pointerLocked = false;
   private sprintToggled = false;
+  private shiftPressTime = 0;
 
   // Touch inputs for mobile support
   private touchMoveX = 0;
@@ -162,6 +163,10 @@ export class InputManager {
       right = this.touchMoveX;
     }
 
+    if (forward === 0 && right === 0 && !this.keysDown.has('ShiftLeft') && !this.keysDown.has('ShiftRight')) {
+      this.sprintToggled = false;
+    }
+
     const isSprinting =
       this.keysDown.has('ShiftLeft') ||
       this.keysDown.has('ShiftRight') ||
@@ -210,6 +215,7 @@ export class InputManager {
     this.touchSprint = false;
     this.touchSlide = false;
     this.sprintToggled = false;
+    this.shiftPressTime = 0;
     this.lookDeltaX = 0;
     this.lookDeltaY = 0;
   }
@@ -232,14 +238,22 @@ export class InputManager {
   }
 
   private isJumpKey(e: KeyboardEvent): boolean {
+    const code = e.code;
+    const key = e.key;
     return (
-      e.code === 'Space' ||
-      e.key === ' ' ||
-      e.code === 'Spacebar' ||
-      e.code === 'KeyF' ||
-      e.code === 'KeyE' ||
-      e.code === 'KeyJ' ||
-      e.code === 'Numpad0'
+      code === 'Space' ||
+      key === ' ' ||
+      code === 'Spacebar' ||
+      code === 'KeyF' ||
+      key === 'f' ||
+      key === 'F' ||
+      code === 'KeyE' ||
+      key === 'e' ||
+      key === 'E' ||
+      code === 'KeyJ' ||
+      key === 'j' ||
+      key === 'J' ||
+      code === 'Numpad0'
     );
   }
 
@@ -259,7 +273,7 @@ export class InputManager {
 
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
       if (!e.repeat) {
-        this.sprintToggled = !this.sprintToggled;
+        this.shiftPressTime = performance.now();
       }
     }
 
@@ -274,6 +288,17 @@ export class InputManager {
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
+    if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      const pressDuration = performance.now() - this.shiftPressTime;
+      if (pressDuration < 260) {
+        // Quick tap: toggle sprint on/off
+        this.sprintToggled = !this.sprintToggled;
+      } else {
+        // Held down: standard hold-to-sprint (resets when released)
+        this.sprintToggled = false;
+      }
+    }
+
     if (this.isJumpKey(e)) {
       this.jumpHeld = false;
       this.keysDown.delete('Space');
