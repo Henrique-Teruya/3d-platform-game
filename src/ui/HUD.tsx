@@ -230,7 +230,7 @@ export const HUD: React.FC<HUDProps> = ({ engine }) => {
             <kbd>SPACE</kbd> JUMP / WALL JUMP
           </div>
           <div className="hud-hint-item">
-            <kbd>CTRL / C</kbd> SLIDE
+            <kbd>CTRL / C</kbd> SLIDE / STOMP
           </div>
           <div className="hud-hint-item">
             <kbd>R</kbd> CHECKPOINT

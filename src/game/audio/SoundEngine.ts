@@ -224,8 +224,14 @@ export class SoundEngine {
         this.isSliding = false;
         this.playRespawnSweep();
       }),
-      this.events.on('PLAYER_LAUNCHED', () => {
-        this.playLaunchPadSound();
+      this.events.on('PLAYER_STOMP_START', () => {
+        this.playStompStartSound();
+      }),
+      this.events.on('PLAYER_STOMP_LAND', ({ fallSpeed }) => {
+        this.playStompLandSound(fallSpeed);
+      }),
+      this.events.on('PLAYER_LAUNCHED', ({ isStompBoost }) => {
+        this.playLaunchPadSound(isStompBoost);
       }),
     );
   }
@@ -293,37 +299,93 @@ export class SoundEngine {
     osc.stop(now + 0.22);
   }
 
-  private playLaunchPadSound(): void {
+  private playStompStartSound(): void {
     if (!this.ctx || !this.sfxGain) return;
     const now = this.ctx.currentTime;
-
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(85, now);
-    osc.frequency.exponentialRampToValueAtTime(340, now + 0.18);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.35);
 
-    gain.gain.setValueAtTime(0.32, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(280, now);
+    osc.frequency.exponentialRampToValueAtTime(55, now + 0.16);
+
+    gain.gain.setValueAtTime(0.24, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
     osc.connect(gain);
     gain.connect(this.sfxGain);
     osc.start(now);
-    osc.stop(now + 0.4);
+    osc.stop(now + 0.19);
+  }
+
+  private playStompLandSound(fallSpeed: number): void {
+    if (!this.ctx || !this.sfxGain) return;
+    const now = this.ctx.currentTime;
+    const intensity = Math.min(1.4, Math.max(0.5, fallSpeed / 18.0));
+
+    // Deep sub-bass drop
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(95, now);
+    subOsc.frequency.exponentialRampToValueAtTime(22, now + 0.28);
+
+    subGain.gain.setValueAtTime(0.42 * intensity, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.sfxGain);
+    subOsc.start(now);
+    subOsc.stop(now + 0.34);
+
+    // Punchy noise impact burst
+    const punchOsc = this.ctx.createOscillator();
+    const punchGain = this.ctx.createGain();
+    punchOsc.type = 'triangle';
+    punchOsc.frequency.setValueAtTime(160, now);
+    punchOsc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
+
+    punchGain.gain.setValueAtTime(0.3 * intensity, now);
+    punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    punchOsc.connect(punchGain);
+    punchGain.connect(this.sfxGain);
+    punchOsc.start(now);
+    punchOsc.stop(now + 0.15);
+  }
+
+  private playLaunchPadSound(isStompBoost = false): void {
+    if (!this.ctx || !this.sfxGain) return;
+    const now = this.ctx.currentTime;
+    const boostMult = isStompBoost ? 1.5 : 1.0;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(isStompBoost ? 110 : 85, now);
+    osc.frequency.exponentialRampToValueAtTime(isStompBoost ? 520 : 340, now + 0.22);
+    osc.frequency.exponentialRampToValueAtTime(isStompBoost ? 130 : 110, now + (isStompBoost ? 0.45 : 0.35));
+
+    gain.gain.setValueAtTime(0.35 * boostMult, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isStompBoost ? 0.5 : 0.38));
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + (isStompBoost ? 0.52 : 0.4));
 
     const hiOsc = this.ctx.createOscillator();
     const hiGain = this.ctx.createGain();
     hiOsc.type = 'sine';
-    hiOsc.frequency.setValueAtTime(520, now);
-    hiOsc.frequency.exponentialRampToValueAtTime(1240, now + 0.22);
-    hiGain.gain.setValueAtTime(0.18, now);
-    hiGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    hiOsc.frequency.setValueAtTime(isStompBoost ? 640 : 520, now);
+    hiOsc.frequency.exponentialRampToValueAtTime(isStompBoost ? 1680 : 1240, now + (isStompBoost ? 0.3 : 0.22));
+    hiGain.gain.setValueAtTime(0.22 * boostMult, now);
+    hiGain.gain.exponentialRampToValueAtTime(0.001, now + (isStompBoost ? 0.35 : 0.25));
 
     hiOsc.connect(hiGain);
     hiGain.connect(this.sfxGain);
     hiOsc.start(now);
-    hiOsc.stop(now + 0.26);
+    hiOsc.stop(now + (isStompBoost ? 0.36 : 0.26));
   }
 
   private playCheckpointChime(): void {

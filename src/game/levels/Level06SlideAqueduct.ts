@@ -96,7 +96,20 @@ export const LEVEL_06_SLIDE_AQUEDUCT: LevelDefinition = {
       id: 'l6-pad-boost',
       position: [0, -3.75, -67],
       size: [4.0, 0.45, 4.0],
-      impulse: [0, 24.5, -44.0],
+      impulse: [0, 18.5, -22.0],
+    },
+  ],
+  tutorialTriggers: [
+    {
+      id: 'l6-t-stomp',
+      triggerZ: -62,
+      triggerRadius: 6.5,
+      desktopTitle: 'AIR STOMP BOOST',
+      desktopHint: 'PRESS CTRL IN MID-AIR TO STOMP ONTO THE LAUNCH PAD FOR EXTRA HEIGHT',
+      desktopKey: 'CTRL',
+      mobileTitle: 'SUPER SALTO',
+      mobileHint: 'USE SLIDE NO AR PARA DAR STOMP NO PROPULSOR E ALCANÇAR A PLATAFORMA',
+      actionType: 'slide',
     },
   ],
   distantMonoliths: [

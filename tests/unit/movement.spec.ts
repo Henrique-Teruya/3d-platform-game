@@ -271,4 +271,134 @@ describe('PlayerController & Rapier3D Integration', () => {
 
     physics.dispose();
   });
+
+  it('allows jumping seamlessly while running and holding Shift', () => {
+    const physics = new PhysicsWorld();
+    const events = new EventBus();
+    const controller = new PlayerController(physics, events, { ...DEFAULT_MOVEMENT_CONFIG });
+    const dummyInputManager = {
+      consumeJumpBuffer: () => {},
+    } as unknown as InputManager;
+
+    physics.addStaticBox('floor', { x: 0, y: -1, z: -30 }, { x: 20, y: 2, z: 80 });
+    physics.step(1 / 60);
+
+    controller.spawnAt(0, 0, 0, 0);
+
+    let jumpedEvents = 0;
+    events.on('PLAYER_JUMPED', () => {
+      jumpedEvents += 1;
+    });
+
+    // Run forward with Shift held
+    for (let i = 0; i < 30; i++) {
+      physics.step(1 / 60);
+      controller.fixedUpdate(
+        1 / 60,
+        makeInput({ moveForward: 1, isSprinting: true }),
+        dummyInputManager,
+      );
+    }
+    expect(controller.isGrounded).toBe(true);
+    expect(controller.getHorizontalSpeed()).toBeGreaterThan(8.0);
+
+    // Jump while holding Shift and moveForward
+    physics.step(1 / 60);
+    controller.fixedUpdate(
+      1 / 60,
+      makeInput({ moveForward: 1, isSprinting: true, isJumpHeld: true, jumpBuffered: true }),
+      dummyInputManager,
+    );
+
+    expect(controller.isGrounded).toBe(false);
+    expect(controller.velocity.y).toBeGreaterThan(8.0);
+    expect(jumpedEvents).toBe(1);
+
+    physics.dispose();
+  });
+
+  it('triggers air stomp with Ctrl, slams downward, and lands with stomp impact', () => {
+    const physics = new PhysicsWorld();
+    const events = new EventBus();
+    const controller = new PlayerController(physics, events, { ...DEFAULT_MOVEMENT_CONFIG });
+    const dummyInputManager = {
+      consumeJumpBuffer: () => {},
+    } as unknown as InputManager;
+
+    physics.addStaticBox('floor', { x: 0, y: -1, z: 0 }, { x: 20, y: 2, z: 20 });
+    physics.step(1 / 60);
+
+    controller.spawnAt(0, 10.0, 0, 0);
+    controller.isGrounded = false;
+    controller.velocity.set(0, 1.0, 0);
+
+    let stompStartFired = false;
+    let stompLandFired = false;
+    events.on('PLAYER_STOMP_START', () => {
+      stompStartFired = true;
+    });
+    events.on('PLAYER_STOMP_LAND', () => {
+      stompLandFired = true;
+    });
+
+    // Press Ctrl in mid-air
+    physics.step(1 / 60);
+    controller.fixedUpdate(
+      1 / 60,
+      makeInput({ isSlidingHeld: true }),
+      dummyInputManager,
+    );
+
+    expect(stompStartFired).toBe(true);
+    expect(controller.isStomping).toBe(true);
+    expect(controller.state).toBe('STOMPING');
+    expect(controller.velocity.y).toBeLessThanOrEqual(-24.0);
+
+    // Continue stepping until landing
+    for (let i = 0; i < 40; i++) {
+      physics.step(1 / 60);
+      controller.fixedUpdate(1 / 60, makeInput({}), dummyInputManager);
+      if (controller.isGrounded) break;
+    }
+
+    expect(controller.isGrounded).toBe(true);
+    expect(controller.isStomping).toBe(false);
+    expect(stompLandFired).toBe(true);
+
+    physics.dispose();
+  });
+
+  it('applies boosted launch when stomping on a launch pad compared to normal bounce', () => {
+    const physics = new PhysicsWorld();
+    const events = new EventBus();
+    const controller = new PlayerController(physics, events, { ...DEFAULT_MOVEMENT_CONFIG });
+
+    controller.spawnAt(0, 5.0, 0, 0);
+    controller.isGrounded = false;
+    controller.isStomping = true;
+
+    let isStompBoostEmitted = false;
+    events.on('PLAYER_LAUNCHED', (data) => {
+      isStompBoostEmitted = !!data.isStompBoost;
+    });
+
+    const baseImpulse = [0, 18.5, -22.0];
+    const multY = DEFAULT_MOVEMENT_CONFIG.stompLaunchPadMultiplier;
+    const multXZ = DEFAULT_MOVEMENT_CONFIG.stompLaunchPadForwardMult;
+
+    // Execute launch with stomp boost
+    controller.applyLaunch(
+      baseImpulse[0] * multXZ,
+      baseImpulse[1] * multY,
+      baseImpulse[2] * multXZ,
+      true,
+    );
+
+    expect(controller.isStomping).toBe(false);
+    expect(controller.velocity.y).toBeCloseTo(18.5 * multY, 1);
+    expect(controller.velocity.y).toBeGreaterThan(30.0);
+    expect(isStompBoostEmitted).toBe(true);
+
+    physics.dispose();
+  });
 });

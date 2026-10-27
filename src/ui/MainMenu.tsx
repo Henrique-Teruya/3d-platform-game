@@ -68,7 +68,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ engine }) => {
         </div>
 
         <div className="menu-footer">
-          <span>WASD / ARROWS TO MOVE · SHIFT SPRINT · SPACE JUMP · CTRL SLIDE</span>
+          <span>WASD / ARROWS TO MOVE · SHIFT SPRINT · SPACE JUMP · CTRL SLIDE / AIR STOMP</span>
         </div>
       </div>
     </div>

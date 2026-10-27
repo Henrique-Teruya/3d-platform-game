@@ -226,20 +226,20 @@ export class InputManager {
       this.onQuickRestart?.();
     }
 
-    if (e.code === 'Space') {
+    if (e.code === 'Space' || e.key === ' ' || e.code === 'Spacebar') {
       e.preventDefault();
-      if (!this.jumpHeld) {
-        this.jumpBufferTimer = 0.13;
-      }
+      this.jumpBufferTimer = 0.16;
       this.jumpHeld = true;
+      this.keysDown.add('Space');
     }
 
     this.keysDown.add(e.code);
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
-    if (e.code === 'Space') {
+    if (e.code === 'Space' || e.key === ' ' || e.code === 'Spacebar') {
       this.jumpHeld = false;
+      this.keysDown.delete('Space');
     }
     this.keysDown.delete(e.code);
   }

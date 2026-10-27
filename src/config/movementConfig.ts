@@ -38,6 +38,11 @@ export interface MovementConfig {
   groundSnapDistance: number;
   stepOffsetHeight: number;
 
+  // Stomp & Propulsor
+  stompDownwardVelocity: number;
+  stompLaunchPadMultiplier: number;
+  stompLaunchPadForwardMult: number;
+
   // Wall Parkour
   wallRunMinSpeed: number;
   wallRunMaxDuration: number;
@@ -88,12 +93,16 @@ export const DEFAULT_MOVEMENT_CONFIG: MovementConfig = {
   gravityFallMult: 1.38,
   gravityCutMult: 2.15,
   terminalFallSpeed: -45.0,
-  coyoteTime: 0.13,
-  jumpBufferTime: 0.12,
+  coyoteTime: 0.16,
+  jumpBufferTime: 0.14,
 
   maxWalkableSlopeDeg: 46.0,
-  groundSnapDistance: 0.22,
+  groundSnapDistance: 0.45,
   stepOffsetHeight: 0.35,
+
+  stompDownwardVelocity: -26.0,
+  stompLaunchPadMultiplier: 1.65,
+  stompLaunchPadForwardMult: 1.18,
 
   wallRunMinSpeed: 5.8,
   wallRunMaxDuration: 1.55,

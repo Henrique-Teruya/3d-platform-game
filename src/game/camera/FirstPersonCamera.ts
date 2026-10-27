@@ -32,9 +32,27 @@ export class FirstPersonCamera {
     this.trauma = Math.min(0.45, this.trauma + normalized * 0.25 * shakeScale);
   }
 
-  public onLaunchPadImpulse(): void {
-    this.landingDipVelocity = -1.4;
-    this.trauma = Math.min(0.5, this.trauma + 0.3);
+  public onLaunchPadImpulse(isStompBoost = false): void {
+    if (isStompBoost) {
+      this.landingDipVelocity = -2.4;
+      this.landingPitchOffset = -0.06;
+      this.trauma = Math.min(0.85, this.trauma + 0.55);
+    } else {
+      this.landingDipVelocity = -1.4;
+      this.trauma = Math.min(0.5, this.trauma + 0.3);
+    }
+  }
+
+  public onStompStart(): void {
+    this.landingPitchOffset = 0.05;
+    this.landingDipVelocity = -1.2;
+    this.trauma = Math.min(0.4, this.trauma + 0.15);
+  }
+
+  public onStompLand(shakeScale: number): void {
+    this.landingDipVelocity = -3.2;
+    this.landingPitchOffset = -0.07;
+    this.trauma = Math.min(0.75, this.trauma + 0.45 * shakeScale);
   }
 
   public update(

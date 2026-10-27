@@ -5,6 +5,8 @@ export type GameEventMap = {
   PLAYER_SLIDE_END: Record<string, never>;
   PLAYER_WALLRUN_START: { side: 'left' | 'right' };
   PLAYER_WALLRUN_END: Record<string, never>;
+  PLAYER_STOMP_START: Record<string, never>;
+  PLAYER_STOMP_LAND: { fallSpeed: number };
   PLAYER_FOOTSTEP: {
     speed: number;
     isSprinting: boolean;
@@ -13,7 +15,7 @@ export type GameEventMap = {
   };
   CHECKPOINT_ACTIVATED: { index: number; total: number; name: string };
   PLAYER_RESPAWNED: { checkpointIndex: number };
-  PLAYER_LAUNCHED: { impulseX: number; impulseY: number; impulseZ: number };
+  PLAYER_LAUNCHED: { impulseX: number; impulseY: number; impulseZ: number; isStompBoost?: boolean };
   LEVEL_STARTED: { levelId: string; levelName: string; subtitle: string };
   LEVEL_COMPLETED: { levelId: string; elapsedSeconds: number; isNewBest: boolean };
 };

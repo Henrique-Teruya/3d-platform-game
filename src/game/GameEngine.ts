@@ -229,6 +229,15 @@ export class GameEngine {
       this.fpCamera.onLandingImpact(fallSpeed, this.movementConfig, shakeScale);
     });
 
+    this.events.on('PLAYER_STOMP_START', () => {
+      this.fpCamera.onStompStart();
+    });
+
+    this.events.on('PLAYER_STOMP_LAND', () => {
+      const shakeScale = useGameStore.getState().settings.cameraShake;
+      this.fpCamera.onStompLand(shakeScale);
+    });
+
     this.events.on('CHECKPOINT_ACTIVATED', ({ index, total, name }) => {
       useGameStore
         .getState()
@@ -347,11 +356,24 @@ export class GameEngine {
             const dx = Math.abs(pPos.x - lp.position.x);
             const dy = pPos.y - lp.position.y;
             const dz = Math.abs(pPos.z - lp.position.z);
-            const halfW = lp.size[0] * 0.5 + 0.35;
-            const halfD = lp.size[2] * 0.5 + 0.35;
-            if (dx <= halfW && dz <= halfD && dy >= -0.25 && dy <= 1.45) {
-              this.player.applyLaunch(lp.impulse[0], lp.impulse[1], lp.impulse[2]);
-              this.fpCamera.onLaunchPadImpulse();
+            const halfW = lp.size[0] * 0.5 + 0.45;
+            const halfD = lp.size[2] * 0.5 + 0.45;
+            if (dx <= halfW && dz <= halfD && dy >= -0.35 && dy <= 1.85) {
+              const wasStomping = this.player.isStomping;
+              if (wasStomping) {
+                const multY = this.movementConfig.stompLaunchPadMultiplier ?? 1.65;
+                const multXZ = this.movementConfig.stompLaunchPadForwardMult ?? 1.18;
+                this.player.applyLaunch(
+                  lp.impulse[0] * multXZ,
+                  lp.impulse[1] * multY,
+                  lp.impulse[2] * multXZ,
+                  true,
+                );
+                this.fpCamera.onLaunchPadImpulse(true);
+              } else {
+                this.player.applyLaunch(lp.impulse[0], lp.impulse[1], lp.impulse[2], false);
+                this.fpCamera.onLaunchPadImpulse(false);
+              }
               break;
             }
           }

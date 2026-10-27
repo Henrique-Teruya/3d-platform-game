@@ -24,7 +24,8 @@ export type PlayerMovementState =
   | 'SLIDING'
   | 'JUMPING'
   | 'FALLING'
-  | 'WALL_RUNNING';
+  | 'WALL_RUNNING'
+  | 'STOMPING';
 
 // Pre-allocated scratchpad objects for zero GC in fixed update loop
 const _wishDir: Vec2XZ = { x: 0, z: 0 };
@@ -43,6 +44,7 @@ export class PlayerController {
   public state: PlayerMovementState = 'IDLE';
   public isGrounded = true;
   public isSliding = false;
+  public isStomping = false;
   public wallRunSide: 'none' | 'left' | 'right' = 'none';
   public currentSurface: SurfaceMaterialType = 'concrete';
 
@@ -55,6 +57,7 @@ export class PlayerController {
   private wallRunTimer = 0;
   private wallJumpCooldownTimer = 0;
   private slideBoostCooldownTimer = 0;
+  private launchTimer = 0;
   private footstepTimer = 0;
   private activeMovingPlatformId: string | undefined;
 
@@ -80,11 +83,13 @@ export class PlayerController {
     this.state = 'IDLE';
     this.isGrounded = true;
     this.isSliding = false;
+    this.isStomping = false;
     this.wallRunSide = 'none';
     this.coyoteTimer = 0;
     this.wallRunTimer = 0;
     this.wallJumpCooldownTimer = 0;
     this.slideBoostCooldownTimer = 0;
+    this.launchTimer = 0;
     this.hasLastWall = false;
     this.activeMovingPlatformId = undefined;
     this.currentEyeHeight = this.config.cameraEyeHeightStand;
@@ -108,19 +113,21 @@ export class PlayerController {
     if (this.pitch < -maxPitch) this.pitch = -maxPitch;
   }
 
-  public applyLaunch(impulseX: number, impulseY: number, impulseZ: number): void {
+  public applyLaunch(impulseX: number, impulseY: number, impulseZ: number, isStompBoost = false): void {
     if (this.isSliding && this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
       this.exitSlide();
     }
     if (this.wallRunSide !== 'none') {
       this.endWallRun();
     }
+    this.isStomping = false;
+    this.launchTimer = 1.25;
     this.velocity.set(impulseX, impulseY, impulseZ);
     this.isGrounded = false;
     this.coyoteTimer = 0;
     this.activeMovingPlatformId = undefined;
     this.state = 'JUMPING';
-    this.events.emit('PLAYER_LAUNCHED', { impulseX, impulseY, impulseZ });
+    this.events.emit('PLAYER_LAUNCHED', { impulseX, impulseY, impulseZ, isStompBoost });
   }
 
   public fixedUpdate(fixedDt: number, input: InputSnapshot, inputManager: InputManager): void {
@@ -132,6 +139,9 @@ export class PlayerController {
     }
     if (this.slideBoostCooldownTimer > 0) {
       this.slideBoostCooldownTimer = Math.max(0, this.slideBoostCooldownTimer - fixedDt);
+    }
+    if (this.launchTimer > 0) {
+      this.launchTimer = Math.max(0, this.launchTimer - fixedDt);
     }
 
     // 1. Carry player with moving platform if standing on one
@@ -153,22 +163,31 @@ export class PlayerController {
     const hasWishInput = Math.hypot(_wishDir.x, _wishDir.z) > 0.01;
     const horizSpeedBefore = Math.hypot(this.velocity.x, this.velocity.z);
 
-    // 3. Evaluate Slide Transitions
-    const wantsSlide = input.isSlidingHeld;
+    // 3. Evaluate Slide & Stomp Transitions
+    const wantsSlideOrStomp = input.isSlidingHeld;
     if (this.isGrounded) {
-      if (!this.isSliding && wantsSlide && horizSpeedBefore >= this.config.slideMinSpeedToStart) {
+      if (this.isStomping) {
+        this.isStomping = false;
+      }
+      if (!this.isSliding && wantsSlideOrStomp && horizSpeedBefore >= this.config.slideMinSpeedToStart) {
         this.enterSlide();
       } else if (
         this.isSliding &&
-        (!wantsSlide || horizSpeedBefore < this.config.slideStopSpeed)
+        (!wantsSlideOrStomp || horizSpeedBefore < this.config.slideStopSpeed)
       ) {
         if (this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
           this.exitSlide();
         }
       }
-    } else if (this.isSliding && !wantsSlide) {
-      if (this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
-        this.exitSlide();
+    } else {
+      // In air: Ctrl triggers a downward Stomp / Ground Pound
+      if (wantsSlideOrStomp && !this.isStomping && this.wallRunSide === 'none') {
+        this.startStomp();
+      }
+      if (this.isSliding && !wantsSlideOrStomp) {
+        if (this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
+          this.exitSlide();
+        }
       }
     }
 
@@ -190,7 +209,8 @@ export class PlayerController {
 
     // 5. Handle Jump / Coyote Jump / Jump Buffer / Wall Jump
     const canGroundJump = this.isGrounded || this.coyoteTimer > 0;
-    if (input.jumpBuffered) {
+    const wantsJump = input.jumpBuffered || (input.isJumpHeld && this.isGrounded);
+    if (wantsJump) {
       if (this.wallRunSide !== 'none') {
         // Execute Wall Jump
         computeWallJumpVelocity(
@@ -213,6 +233,9 @@ export class PlayerController {
         this.events.emit('PLAYER_JUMPED', { velocity: this.velocity.y, isWallJump: true });
       } else if (canGroundJump) {
         // Execute Ground / Coyote / Slide Jump
+        if (this.isStomping) {
+          this.isStomping = false;
+        }
         if (this.isSliding && this.physics.canStandUp(this.position, this.config.playerHeightStand)) {
           this.exitSlide();
         }
@@ -316,11 +339,19 @@ export class PlayerController {
       this.velocity.x = _vel2D.x;
       this.velocity.z = _vel2D.z;
 
-      const gEff = computeEffectiveGravity(this.velocity.y, input.isJumpHeld, false, this.config);
-      this.velocity.y = Math.max(
-        this.config.terminalFallSpeed,
-        this.velocity.y - gEff * fixedDt,
-      );
+      if (this.isStomping) {
+        this.velocity.y = Math.max(
+          this.config.terminalFallSpeed,
+          this.velocity.y - 42.0 * fixedDt,
+        );
+      } else {
+        const isJumpEffective = input.isJumpHeld || this.launchTimer > 0;
+        const gEff = computeEffectiveGravity(this.velocity.y, isJumpEffective, false, this.config);
+        this.velocity.y = Math.max(
+          this.config.terminalFallSpeed,
+          this.velocity.y - gEff * fixedDt,
+        );
+      }
     }
 
     // 7. Move Character Capsule through Rapier Kinematic Character Controller
@@ -368,7 +399,8 @@ export class PlayerController {
     }
 
     // 8. Ground Probe & Landing Detection
-    const groundProbe = this.physics.probeGround(this.position, 0.24);
+    const probeDist = wasGrounded ? 0.38 : 0.24;
+    const groundProbe = this.physics.probeGround(this.position, probeDist);
     const nowGrounded =
       (moveResult.grounded || groundProbe.grounded) && this.velocity.y <= 0.5;
 
@@ -383,7 +415,10 @@ export class PlayerController {
 
       if (!wasGrounded) {
         this.velocity.y = 0;
-        if (fallSpeedBeforeMove > 2.2) {
+        if (this.isStomping) {
+          this.isStomping = false;
+          this.events.emit('PLAYER_STOMP_LAND', { fallSpeed: fallSpeedBeforeMove });
+        } else if (fallSpeedBeforeMove > 2.2) {
           this.events.emit('PLAYER_LANDED', {
             fallSpeed: fallSpeedBeforeMove,
             surfaceType: this.currentSurface,
@@ -451,6 +486,7 @@ export class PlayerController {
   }
 
   private updateWallRunState(fixedDt: number, input: InputSnapshot, hasWishInput: boolean): void {
+    if (this.isStomping) return;
     const horizSpeed = Math.hypot(this.velocity.x, this.velocity.z);
 
     if (this.wallRunSide !== 'none') {
@@ -525,9 +561,23 @@ export class PlayerController {
     this.events.emit('PLAYER_WALLRUN_END', {});
   }
 
+  private startStomp(): void {
+    this.isStomping = true;
+    if (this.isSliding) {
+      this.exitSlide();
+    }
+    const slamSpeed = this.config.stompDownwardVelocity ?? -26.0;
+    this.velocity.y = Math.min(this.velocity.y, slamSpeed);
+    this.velocity.x *= 0.8;
+    this.velocity.z *= 0.8;
+    this.events.emit('PLAYER_STOMP_START', {});
+  }
+
   private updateStateLabel(input: InputSnapshot): void {
     if (!this.isGrounded) {
-      if (this.wallRunSide !== 'none') {
+      if (this.isStomping) {
+        this.state = 'STOMPING';
+      } else if (this.wallRunSide !== 'none') {
         this.state = 'WALL_RUNNING';
       } else if (this.velocity.y > 0.2) {
         this.state = 'JUMPING';
